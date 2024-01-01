@@ -88,7 +88,8 @@ class StyleTransferWindow(QWidget):
         ## 载入Ui文件
         uic.loadUi("style_transfer_window.ui", self)
         ## 如果使用上传的图片则置为True
-        self.use_image = True
+        self.have_content_image = False
+        self.have_style_image = False
         ## 上传图片的地址
         self.content_path = ''
         self.style_path = ''
@@ -110,7 +111,7 @@ class StyleTransferWindow(QWidget):
         self.ClearStyleButton.clicked.connect(self.clear_style_image)
         ## 绑定清空图片函数 （运行图）
         self.ClearTransferButton.clicked.connect(self.clear_image)
-        ## 跑图成功置为True
+        ## 成功置为True
         self.have_image = False
 
     def upload_content_image(self):
@@ -118,7 +119,7 @@ class StyleTransferWindow(QWidget):
         jpg = QPixmap(imgName).scaled(self.ContentImageLabel.width(), self.ContentImageLabel.height())
         if imgType:
             self.ContentImageLabel.setPixmap(jpg)
-            self.use_image = True
+            self.have_content_image = True
             self.content_path = imgName
     
     def upload_style_image(self):
@@ -126,32 +127,26 @@ class StyleTransferWindow(QWidget):
         jpg = QPixmap(imgName).scaled(self.StyleImageLabel.width(), self.StyleImageLabel.height())
         if imgType:
             self.StyleImageLabel.setPixmap(jpg)
-            self.use_image = True
+            self.have_style_image = True
             self.style_path = imgName
 
     def sample_image(self):
-        # text = self.textEdit.toPlainText()
-        # prompts = [text]
-        # models = model_loader.preload_models('cuda')
-        # if self.use_image:
-        #     input_images = [Image.open(self.use_image_name)]
-        #     image = pipeline.generate(prompts, input_images=input_images, models=models, sampler="k_lms",
-        #                               n_inference_steps=50)
-        # else:
-        #     image = pipeline.generate(prompts, models=models, sampler="k_lms", n_inference_steps=50)
+        if self.have_image:
+            self.clear_image()
+        if self.have_style_image and self.have_content_image:
+            img = get_image(self.content_path, self.style_path)
+        img.save('./output/output.jpg')
         self.have_image = True
-        img = get_image(self.content_path, self.style_path)
-        img.save('output.jpg')
-        pix = QPixmap('output.jpg')
+        pix = QPixmap('./output/output.jpg')
         self.TransferImageLabel.setPixmap(pix)
 
     def clear_style_image(self):
         self.StyleImageLabel.setPixmap(QPixmap(""))
-        self.use_image = False
+        self.have_style_image = False
     
     def clear_content_image(self):
         self.ContentImageLabel.setPixmap(QPixmap(""))
-        self.use_image = False
+        self.have_content_image = False
 
     def clear_image(self):
         self.TransferImageLabel.setPixmap(QPixmap(""))
