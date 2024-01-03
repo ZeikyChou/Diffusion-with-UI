@@ -4,8 +4,8 @@ from PIL import Image
 from torchvision import transforms
 import torchvision.utils as utils
 import numpy as np
-from models.RevResNet import RevResNet
-from models.cWCT import cWCT
+from .models.RevResNet import RevResNet
+from .models.cWCT import cWCT
 
 def img_resize(img, max_size, down_scale=None):
     w, h = img.size

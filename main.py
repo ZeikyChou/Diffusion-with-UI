@@ -1,16 +1,12 @@
-# This is a sample Python script.
-import torch
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets
 import sys
-import cv2 as cv
 from stable_diffusion_pytorch import pipeline
 from stable_diffusion_pytorch import model_loader
-from PIL import Image, ImageQt
+from PIL import Image
 from PyQt5.QtGui import QPixmap
-from image_transfer import get_image
+from style_transfer.image_transfer import get_image
 
 ## 定义DiffusionWindow类，继承QWidget
 class DiffusionWindow(QWidget):
@@ -95,12 +91,8 @@ class StyleTransferWindow(QWidget):
         self.style_path = ''
         ## 设置固定窗口大小
         self.setFixedSize(1280, 720)
-        ## 点击获取位置光标，用于文本框光标取消
-        self.setFocusPolicy(Qt.StrongFocus)
         ## 绑定运行跑图函数
         self.RunButton.clicked.connect(self.sample_image)
-        ## 绑定清空文本函数
-        # self.ClearTextButton.clicked.connect(self.clear_text)
         ## 绑定上传图片函数
         self.UploadContentButton.clicked.connect(self.upload_content_image)
         self.UploadStyleButton.clicked.connect(self.upload_style_image)
@@ -152,9 +144,6 @@ class StyleTransferWindow(QWidget):
         self.TransferImageLabel.setPixmap(QPixmap(""))
         self.have_image = False
 
-    # def clear_text(self):
-    #     self.textEdit.clear()
-
     def save_image(self):
         if self.have_image:
             file_path, _ = QFileDialog.getSaveFileName(self, '保存图片', "", "*.jpg;;*.png")
@@ -204,16 +193,12 @@ class MainWindow(QMainWindow):
         self.style_transfer_window.show()
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
-
     app.exec()
 
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 
 
