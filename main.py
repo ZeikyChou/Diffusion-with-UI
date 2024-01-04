@@ -1,15 +1,12 @@
-# This is a sample Python script.
-import torch
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets
 import sys
-import cv2 as cv
 from stable_diffusion_pytorch import pipeline
 from stable_diffusion_pytorch import model_loader
-from PIL import Image, ImageQt
+from PIL import Image
 from PyQt5.QtGui import QPixmap
+from style_transfer.image_transfer import get_image
 
 ## 定义DiffusionWindow类，继承QWidget
 class DiffusionWindow(QWidget):
@@ -81,6 +78,79 @@ class DiffusionWindow(QWidget):
                 pixmap = self.GeneratedImageLabel.pixmap()
                 pixmap.save(file_path)
 
+class StyleTransferWindow(QWidget):
+    def __init__(self, parent=None):
+        super(StyleTransferWindow, self).__init__(parent)
+        ## 载入Ui文件
+        uic.loadUi("style_transfer_window.ui", self)
+        ## 如果使用上传的图片则置为True
+        self.have_content_image = False
+        self.have_style_image = False
+        ## 上传图片的地址
+        self.content_path = ''
+        self.style_path = ''
+        ## 设置固定窗口大小
+        self.setFixedSize(1280, 720)
+        ## 绑定运行跑图函数
+        self.RunButton.clicked.connect(self.sample_image)
+        ## 绑定上传图片函数
+        self.UploadContentButton.clicked.connect(self.upload_content_image)
+        self.UploadStyleButton.clicked.connect(self.upload_style_image)
+        ## 绑定保存图片函数
+        self.SaveImageButton.clicked.connect(self.save_image)
+        ## 绑定清空图片函数（上传图）
+        self.ClearContentButton.clicked.connect(self.clear_content_image)
+        self.ClearStyleButton.clicked.connect(self.clear_style_image)
+        ## 绑定清空图片函数 （运行图）
+        self.ClearTransferButton.clicked.connect(self.clear_image)
+        ## 成功置为True
+        self.have_image = False
+
+    def upload_content_image(self):
+        imgName, imgType = QFileDialog.getOpenFileName(self, "打开图片", "", "*.jpg;;*.png")
+        jpg = QPixmap(imgName).scaled(self.ContentImageLabel.width(), self.ContentImageLabel.height())
+        if imgType:
+            self.ContentImageLabel.setPixmap(jpg)
+            self.have_content_image = True
+            self.content_path = imgName
+    
+    def upload_style_image(self):
+        imgName, imgType = QFileDialog.getOpenFileName(self, "打开图片", "", "*.jpg;;*.png")
+        jpg = QPixmap(imgName).scaled(self.StyleImageLabel.width(), self.StyleImageLabel.height())
+        if imgType:
+            self.StyleImageLabel.setPixmap(jpg)
+            self.have_style_image = True
+            self.style_path = imgName
+
+    def sample_image(self):
+        if self.have_image:
+            self.clear_image()
+        if self.have_style_image and self.have_content_image:
+            img = get_image(self.content_path, self.style_path)
+        img.save('./output/output.jpg')
+        self.have_image = True
+        pix = QPixmap('./output/output.jpg')
+        self.TransferImageLabel.setPixmap(pix)
+
+    def clear_style_image(self):
+        self.StyleImageLabel.setPixmap(QPixmap(""))
+        self.have_style_image = False
+    
+    def clear_content_image(self):
+        self.ContentImageLabel.setPixmap(QPixmap(""))
+        self.have_content_image = False
+
+    def clear_image(self):
+        self.TransferImageLabel.setPixmap(QPixmap(""))
+        self.have_image = False
+
+    def save_image(self):
+        if self.have_image:
+            file_path, _ = QFileDialog.getSaveFileName(self, '保存图片', "", "*.jpg;;*.png")
+            if file_path:
+                pixmap = self.TransferImageLabel.pixmap()
+                pixmap.save(file_path)
+
 ## 定义主窗口函数
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -99,7 +169,7 @@ class MainWindow(QMainWindow):
         self.GPU_Button.toggled.connect(self.device_update)
         ## 两个任务窗口
         self.diffusion_window = DiffusionWindow()
-        self.style_transfer_window = DiffusionWindow()
+        self.style_transfer_window = StyleTransferWindow()
         ## 设置任务按钮与具体任务绑定
         self.Diffusion_Button.clicked.connect(self.diffusion)
         self.Style_Button.clicked.connect(self.style_transfer)
@@ -119,19 +189,16 @@ class MainWindow(QMainWindow):
 
     def style_transfer(self):
         print('style_transfer')
-        # self.style_transfer_window,show()
+        self.style_transfer_window.setWindowModality(Qt.ApplicationModal)
+        self.style_transfer_window.show()
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
-
     app.exec()
 
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
 
 
