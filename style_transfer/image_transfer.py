@@ -73,7 +73,7 @@ def load_segment(image_path, size=None):
 
 
 def get_image(content_path, style_path):
-    ckpt_path = './checkpoints/art_image.pt'
+    ckpt_path = './style_transfer/checkpoints/art_image.pt'
     RevNetwork = RevResNet(nBlocks=[10, 10, 10], nStrides=[1, 2, 2], nChannels=[16, 64, 256], in_channel=3, mult=4, hidden_dim=64, sp_steps=1)
     device = torch.device('cpu')
     state_dict = torch.load(ckpt_path, map_location=device)
